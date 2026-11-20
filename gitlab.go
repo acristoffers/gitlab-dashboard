@@ -33,7 +33,8 @@ fragment MR on MergeRequest {
   draft
   createdAt
   updatedAt
-  project { name webUrl }
+  targetBranch
+  project { name webUrl repository { rootRef } }
   author { ...UserFields }
   assignees { nodes { ...UserFields } }
   reviewers {
@@ -92,15 +93,19 @@ type Pipeline struct {
 }
 
 type MergeRequest struct {
-	IID       string    `json:"iid"`
-	Title     string    `json:"title"`
-	WebURL    string    `json:"webUrl"`
-	Draft     bool      `json:"draft"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Project   struct {
-		Name   string `json:"name"`
-		WebURL string `json:"webUrl"`
+	IID          string    `json:"iid"`
+	Title        string    `json:"title"`
+	WebURL       string    `json:"webUrl"`
+	Draft        bool      `json:"draft"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+	TargetBranch string    `json:"targetBranch"`
+	Project      struct {
+		Name       string `json:"name"`
+		WebURL     string `json:"webUrl"`
+		Repository *struct {
+			RootRef string `json:"rootRef"` // default branch
+		} `json:"repository"`
 	} `json:"project"`
 	Author    User                    `json:"author"`
 	Assignees struct{ Nodes []User }  `json:"assignees"`

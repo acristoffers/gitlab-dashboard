@@ -50,6 +50,7 @@ func main() {
 		"pipelineIcon": pipelineIcon,
 		"reviewIcon":   reviewIcon,
 		"ciClass":      pipelineClass,
+		"branchIcon":   func() template.HTML { return branchIcon },
 		"dict": func(kv ...any) map[string]any {
 			m := make(map[string]any, len(kv)/2)
 			for i := 0; i+1 < len(kv); i += 2 {

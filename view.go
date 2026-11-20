@@ -3,6 +3,7 @@ package main
 import (
 	"cmp"
 	"fmt"
+	"net/url"
 	"regexp"
 	"sort"
 	"strings"
@@ -34,6 +35,9 @@ type RowView struct {
 	Pipeline *PipelineView
 	Updated  time.Time
 	MyReview string // review state of the current user on this MR (reviewing list only)
+
+	Target    string // target branch, only set when it isn't the project's default branch
+	TargetURL string
 
 	Approval      string // "approved" (rules satisfied), "partial" (some approvals, more needed) or ""
 	ApprovalCount string // "1/2" for partial approvals
@@ -107,6 +111,11 @@ func row(base string, mr MergeRequest, people []User, myReview string) RowView {
 		Updated:  mr.UpdatedAt,
 		MyReview: myReview,
 	}
+	if repo := mr.Project.Repository; repo != nil && repo.RootRef != "" && mr.TargetBranch != repo.RootRef {
+		r.Target = mr.TargetBranch
+		r.TargetURL = mr.Project.WebURL + "/-/tree/" + escapeBranch(mr.TargetBranch)
+	}
+
 	approvers := approvedBy(mr)
 	for _, u := range people {
 		pv := person(base, u)
@@ -165,6 +174,16 @@ func row(base string, mr MergeRequest, people []User, myReview string) RowView {
 		r.Pipeline = pv
 	}
 	return r
+}
+
+// escapeBranch escapes each path segment but keeps the slashes, so
+// "feature/x y" becomes "feature/x%20y" as GitLab expects.
+func escapeBranch(b string) string {
+	parts := strings.Split(b, "/")
+	for i, p := range parts {
+		parts[i] = url.PathEscape(p)
+	}
+	return strings.Join(parts, "/")
 }
 
 func approvedBy(mr MergeRequest) map[string]bool {

@@ -85,6 +85,8 @@
           <a class="ref" href="{{.URL}}" target="_blank" rel="noopener">{{.Ref}}</a>
           <span class="dot">·</span>
           <time datetime="{{.Updated.Format "2006-01-02T15:04:05Z07:00"}}" title="Updated {{iso .Updated}}">updated {{ago .Updated}}</time>
+          {{if .Target}}<span class="dot">·</span>
+          <a class="branch" href="{{.TargetURL}}" target="_blank" rel="noopener" title="Merges into {{.Target}}, not the default branch">{{branchIcon}}<span>{{.Target}}</span></a>{{end}}
           {{if .MyReview}}<span class="mine {{.MyReview}}">{{reviewIcon .MyReview}}You: {{reviewText .MyReview}}</span>{{end}}
         </div>
       </div>

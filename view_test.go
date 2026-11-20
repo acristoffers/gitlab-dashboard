@@ -103,3 +103,21 @@ func TestApprovalState(t *testing.T) {
 		t.Errorf("unapproved MR marked %q", r.Approval)
 	}
 }
+
+func TestTargetBranchOnlyWhenNotDefault(t *testing.T) {
+	mr := MergeRequest{IID: "1", Title: "x", TargetBranch: "feature/manual auth"}
+	mr.Project.WebURL = "https://git.example/g/p"
+	mr.Project.Repository = &struct {
+		RootRef string `json:"rootRef"`
+	}{RootRef: "develop"}
+
+	r := row("https://git.example", mr, nil, "")
+	if r.Target != "feature/manual auth" || r.TargetURL != "https://git.example/g/p/-/tree/feature/manual%20auth" {
+		t.Errorf("target = %q %q", r.Target, r.TargetURL)
+	}
+
+	mr.TargetBranch = "develop"
+	if r = row("https://git.example", mr, nil, ""); r.Target != "" {
+		t.Errorf("default branch shown: %q", r.Target)
+	}
+}
