@@ -14,9 +14,10 @@ Approved MRs get a green **Approved** pill and a green left edge. Hover over
 the pill to see who approved. If a project needs more approvals than it has, the
 pill shows a count like `1/2` instead.
 
-When an MR merges into something other than the project's default branch, for
-example a stacked MR on top of a feature branch, that branch appears after the
-update time and links to the branch on GitLab.
+After the update time comes the MR's branch. When it merges into something
+other than the project's default branch, for example a stacked MR on top of a
+feature branch, the target follows as `source → target`. Both link to the
+branches on GitLab.
 
 If the MR depends on other MRs that aren't merged yet, a red ⊘ follows with
 links to them, e.g. `⊘ !801` or `⊘ AutonomyInterfaces!93` for an MR in another

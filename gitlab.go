@@ -33,6 +33,8 @@ fragment MR on MergeRequest {
   draft
   createdAt
   updatedAt
+  sourceBranch
+  sourceProject { webUrl }
   targetBranch
   project { name webUrl repository { rootRef } }
   author { ...UserFields }
@@ -97,13 +99,17 @@ type Pipeline struct {
 }
 
 type MergeRequest struct {
-	IID          string    `json:"iid"`
-	Title        string    `json:"title"`
-	WebURL       string    `json:"webUrl"`
-	Draft        bool      `json:"draft"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
-	TargetBranch string    `json:"targetBranch"`
+	IID           string    `json:"iid"`
+	Title         string    `json:"title"`
+	WebURL        string    `json:"webUrl"`
+	Draft         bool      `json:"draft"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+	SourceBranch  string    `json:"sourceBranch"`
+	SourceProject *struct {
+		WebURL string `json:"webUrl"`
+	} `json:"sourceProject"` // differs from Project for forks; nil if the fork is gone
+	TargetBranch string `json:"targetBranch"`
 	Project      struct {
 		Name       string `json:"name"`
 		WebURL     string `json:"webUrl"`

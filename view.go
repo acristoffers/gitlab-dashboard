@@ -36,6 +36,8 @@ type RowView struct {
 	Updated  time.Time
 	MyReview string // review state of the current user on this MR (reviewing list only)
 
+	Source    string // source branch
+	SourceURL string
 	Target    string // target branch, only set when it isn't the project's default branch
 	TargetURL string
 
@@ -119,6 +121,10 @@ func row(base string, mr MergeRequest, people []User, myReview string) RowView {
 		ProjURL:  mr.Project.WebURL,
 		Updated:  mr.UpdatedAt,
 		MyReview: myReview,
+	}
+	r.Source = mr.SourceBranch
+	if mr.SourceProject != nil && mr.SourceProject.WebURL != "" {
+		r.SourceURL = mr.SourceProject.WebURL + "/-/tree/" + escapeBranch(mr.SourceBranch)
 	}
 	if repo := mr.Project.Repository; repo != nil && repo.RootRef != "" && mr.TargetBranch != repo.RootRef {
 		r.Target = mr.TargetBranch

@@ -111,7 +111,14 @@ func TestTargetBranchOnlyWhenNotDefault(t *testing.T) {
 		RootRef string `json:"rootRef"`
 	}{RootRef: "develop"}
 
+	mr.SourceBranch = "feature/next"
+	mr.SourceProject = &struct {
+		WebURL string `json:"webUrl"`
+	}{WebURL: "https://git.example/g/p"}
 	r := row("https://git.example", mr, nil, "")
+	if r.Source != "feature/next" || r.SourceURL != "https://git.example/g/p/-/tree/feature/next" {
+		t.Errorf("source = %q %q", r.Source, r.SourceURL)
+	}
 	if r.Target != "feature/manual auth" || r.TargetURL != "https://git.example/g/p/-/tree/feature/manual%20auth" {
 		t.Errorf("target = %q %q", r.Target, r.TargetURL)
 	}

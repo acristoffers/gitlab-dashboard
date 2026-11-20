@@ -95,9 +95,13 @@
           <span class="dot">·</span>
           <a class="ref" href="{{.URL}}" target="_blank" rel="noopener">{{.Ref}}</a>
           <span class="dot">·</span>
-          <time datetime="{{.Updated.Format "2006-01-02T15:04:05Z07:00"}}" title="Updated {{iso .Updated}}">updated {{ago .Updated}}</time>
-          {{if .Target}}<span class="dot">·</span>
-          <a class="branch" href="{{.TargetURL}}" target="_blank" rel="noopener" title="Merges into {{.Target}}, not the default branch">{{branchIcon}}<span>{{.Target}}</span></a>{{end}}
+          <time datetime="{{.Updated.Format "2006-01-02T15:04:05Z07:00"}}" title="Updated {{iso .Updated}}">{{clockIcon}}{{ago .Updated}}</time>
+          {{if .Source}}<span class="dot">·</span>
+          <span class="branch">{{branchIcon}}
+            {{- if .SourceURL}}<a class="src" href="{{.SourceURL}}" target="_blank" rel="noopener" title="Source branch: {{.Source}}">{{.Source}}</a>
+            {{- else}}<span class="src" title="Source branch: {{.Source}}">{{.Source}}</span>{{end}}
+            {{- if .Target}}<svg class="arrow" viewBox="0 0 16 16" role="img" aria-label="into"><path d="M2.5 8h10M9 4.5L12.5 8 9 11.5"/></svg><a class="tgt" href="{{.TargetURL}}" target="_blank" rel="noopener" title="Merges into {{.Target}}, not the default branch">{{.Target}}</a>{{end -}}
+          </span>{{end}}
           {{if or .Blockers .HiddenBlockers}}<span class="dot">·</span>
           <span class="blocked" title="Blocked by unmerged merge requests">{{blockedIcon}}
             {{- range $i, $b := .Blockers}}{{if $i}}, {{end}}<a href="{{$b.URL}}" target="_blank" rel="noopener" title="Blocked by: {{$b.Title}}">{{$b.Ref}}</a>{{end}}
