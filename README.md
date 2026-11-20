@@ -59,3 +59,12 @@ keeps GitLab's cookies separate when the page you're on is the dashboard, so the
 avatar requests go out logged out and fail. Fix it by turning off Enhanced
 Tracking Protection for the dashboard's address: click the shield icon in the
 address bar while on the dashboard. This affects only that one site.
+
+## License
+
+Copyright © 2026 Álan Crístoffer
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. See [LICENSE](LICENSE).

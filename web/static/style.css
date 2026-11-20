@@ -350,3 +350,15 @@ a.ci:hover { box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 20%, transpar
   flex: none; width: 12px; height: 12px;
   fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round;
 }
+
+/* ---------- footer ---------- */
+
+.site-footer {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px;
+  padding: 0 16px 32px;
+  color: var(--faint);
+  font-size: 12px;
+}
+.site-footer a { display: inline-flex; align-items: center; gap: 5px; }
+.site-footer a:hover { color: var(--accent); }
+.site-footer svg { width: 13px; height: 13px; fill: currentColor; }

@@ -30,6 +30,7 @@
           vendorHash = null; # no third-party Go modules
           ldflags = [ "-s" "-w" ];
           meta.mainProgram = "gitlab-dashboard";
+          meta.license = pkgs.lib.licenses.gpl3Plus;
         };
         apps = rec {
           gitlab-dashboard = { type = "app"; program = "${packages.gitlab-dashboard}/bin/gitlab-dashboard"; };
