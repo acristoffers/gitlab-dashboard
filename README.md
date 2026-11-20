@@ -18,6 +18,10 @@ When an MR merges into something other than the project's default branch, for
 example a stacked MR on top of a feature branch, that branch appears after the
 update time and links to the branch on GitLab.
 
+If the MR depends on other MRs that aren't merged yet, a red ⊘ follows with
+links to them, e.g. `⊘ !801` or `⊘ AutonomyInterfaces!93` for an MR in another
+project. Blockers you don't have access to are counted as `+N`.
+
 The page refreshes itself every minute while visible. Press `r` or click
 **Refresh** to force a fresh fetch.
 

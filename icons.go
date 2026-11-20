@@ -50,6 +50,8 @@ var reviewGlyphs = map[string]string{
 
 const branchIcon = template.HTML(`<svg class="branch-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="4.5" cy="3.5" r="1.8"/><circle cx="4.5" cy="12.5" r="1.8"/><circle cx="11.5" cy="5" r="1.8"/><path d="M4.5 5.3v5.4M11.5 6.8c0 3-3.5 2.5-6.2 4.4"/></svg>`)
 
+const blockedIcon = template.HTML(`<svg class="blocked-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M3.6 12.4l8.8-8.8"/></svg>`)
+
 func reviewIcon(state string) template.HTML {
 	g, ok := reviewGlyphs[state]
 	if !ok {

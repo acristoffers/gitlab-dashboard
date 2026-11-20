@@ -121,3 +121,35 @@ func TestTargetBranchOnlyWhenNotDefault(t *testing.T) {
 		t.Errorf("default branch shown: %q", r.Target)
 	}
 }
+
+func TestBlockers(t *testing.T) {
+	mr := MergeRequest{IID: "831", Title: "x"}
+	mr.Project.WebURL = "https://git.example/g/main"
+	add := func(iid, state, proj, projURL string) {
+		b := mr.Blocking.Visible
+		b = append(b, struct {
+			IID     string `json:"iid"`
+			State   string `json:"state"`
+			Title   string `json:"title"`
+			WebURL  string `json:"webUrl"`
+			Project struct {
+				Name   string `json:"name"`
+				WebURL string `json:"webUrl"`
+			} `json:"project"`
+		}{IID: iid, State: state, Title: "t" + iid})
+		b[len(b)-1].Project.Name, b[len(b)-1].Project.WebURL = proj, projURL
+		mr.Blocking.Visible = b
+	}
+	add("93", "opened", "Interfaces", "https://git.example/g/interfaces")
+	add("800", "merged", "Main", "https://git.example/g/main")
+	add("801", "opened", "Main", "https://git.example/g/main")
+	mr.Blocking.HiddenCount = 1
+
+	r := row("https://git.example", mr, nil, "")
+	if len(r.Blockers) != 2 || r.Blockers[0].Ref != "Interfaces!93" || r.Blockers[1].Ref != "!801" {
+		t.Errorf("blockers = %+v", r.Blockers)
+	}
+	if r.HiddenBlockers != 1 {
+		t.Errorf("hidden = %d", r.HiddenBlockers)
+	}
+}

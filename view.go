@@ -39,9 +39,18 @@ type RowView struct {
 	Target    string // target branch, only set when it isn't the project's default branch
 	TargetURL string
 
+	Blockers       []BlockerView // unmerged MRs this one depends on
+	HiddenBlockers int           // blockers the user can't see
+
 	Approval      string // "approved" (rules satisfied), "partial" (some approvals, more needed) or ""
 	ApprovalCount string // "1/2" for partial approvals
 	ApprovalTitle string // tooltip: who approved
+}
+
+type BlockerView struct {
+	Ref   string // "!93", or "Project!93" when in another project
+	URL   string
+	Title string
 }
 
 type PersonView struct {
@@ -115,6 +124,22 @@ func row(base string, mr MergeRequest, people []User, myReview string) RowView {
 		r.Target = mr.TargetBranch
 		r.TargetURL = mr.Project.WebURL + "/-/tree/" + escapeBranch(mr.TargetBranch)
 	}
+
+	for _, b := range mr.Blocking.Visible {
+		if b.State == "merged" { // a merged dependency no longer blocks
+			continue
+		}
+		ref := "!" + b.IID
+		if b.Project.WebURL != mr.Project.WebURL {
+			ref = b.Project.Name + ref
+		}
+		title := b.Title
+		if b.State == "closed" {
+			title += " (closed)"
+		}
+		r.Blockers = append(r.Blockers, BlockerView{Ref: ref, URL: b.WebURL, Title: title})
+	}
+	r.HiddenBlockers = mr.Blocking.HiddenCount
 
 	approvers := approvedBy(mr)
 	for _, u := range people {

@@ -43,6 +43,10 @@ fragment MR on MergeRequest {
       mergeRequestInteraction { reviewState approved }
     }
   }
+  blockingMergeRequests {
+    hiddenCount
+    visibleMergeRequests { iid state title webUrl project { name webUrl } }
+  }
   approved
   approvalsRequired
   approvalsLeft
@@ -112,6 +116,20 @@ type MergeRequest struct {
 	Reviewers struct{ Nodes []User }  `json:"reviewers"`
 	Labels    struct{ Nodes []Label } `json:"labels"`
 	Pipeline  *Pipeline               `json:"headPipeline"`
+
+	Blocking struct {
+		HiddenCount int `json:"hiddenCount"`
+		Visible     []struct {
+			IID     string `json:"iid"`
+			State   string `json:"state"`
+			Title   string `json:"title"`
+			WebURL  string `json:"webUrl"`
+			Project struct {
+				Name   string `json:"name"`
+				WebURL string `json:"webUrl"`
+			} `json:"project"`
+		} `json:"visibleMergeRequests"`
+	} `json:"blockingMergeRequests"`
 
 	// Approval state of the MR as a whole. approvedBy is authoritative;
 	// a reviewer's mergeRequestInteraction can lag behind it.
