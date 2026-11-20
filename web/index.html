@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Merge Requests</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='4' cy='3.5' r='2' fill='none' stroke='%236d5ce7' stroke-width='1.5'/%3E%3Ccircle cx='4' cy='12.5' r='2' fill='none' stroke='%236d5ce7' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='12.5' r='2' fill='none' stroke='%236d5ce7' stroke-width='1.5'/%3E%3Cpath d='M4 5.5v5M12 10.5V7a2 2 0 0 0-2-2H7.5' fill='none' stroke='%236d5ce7' stroke-width='1.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+  <script>
+    // Avatars GitLab won't serve (e.g. private uploads) fall back to initials.
+    document.addEventListener("error", (e) => {
+      if (e.target.tagName === "IMG" && e.target.closest(".avatar")) e.target.remove();
+    }, true);
+  </script>
+</head>
+<body data-refresh="{{.Refresh}}">
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="3.5" r="2"/><circle cx="4" cy="12.5" r="2"/><circle cx="12" cy="12.5" r="2"/><path d="M4 5.5v5M12 10.5V7a2 2 0 0 0-2-2H7.5"/><path d="M9 3.2L7.3 5 9 6.8"/></svg>
+      <span>Merge requests</span>
+      <a class="host" href="{{.BaseURL}}" target="_blank" rel="noopener">{{.BaseURL}}</a>
+    </div>
+    <div class="actions">
+      <span class="stamp" id="stamp" data-at="{{if not .FetchedAt.IsZero}}{{.FetchedAt.Unix}}{{end}}"></span>
+      <button id="refresh" type="button" title="Refresh (r)">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M12.4 1.8v2.6H9.8"/></svg>
+        <span>Refresh</span>
+      </button>
+      {{with .Me}}{{if .Username}}
+      <a class="me" href="{{.URL}}" target="_blank" rel="noopener" title="{{.Name}}">{{template "avatar" .}}</a>
+      {{end}}{{end}}
+    </div>
+  </header>
+
+  <main id="content">{{template "content" .}}</main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
+
+{{define "content"}}
+  {{if .Error}}
+  <div class="banner" role="alert">
+    <strong>GitLab request failed.</strong> {{.Error}}
+    {{if not .FetchedAt.IsZero}}<span class="muted">Showing data from {{ago .FetchedAt}}.</span>{{end}}
+  </div>
+  {{end}}
+  <span hidden id="fetched-at" data-at="{{if not .FetchedAt.IsZero}}{{.FetchedAt.Unix}}{{end}}"></span>
+
+  {{if not .FetchedAt.IsZero}}
+  {{template "section" (dict "Title" "My merge requests" "Rows" .Authored "People" "Reviewers" "Empty" "You have no open merge requests." "Id" "mine")}}
+  {{template "section" (dict "Title" "Review requested" "Rows" .Reviewing "People" "Assignees" "Empty" "Nothing waiting for your review." "Id" "review")}}
+  {{end}}
+{{end}}
+
+{{define "section"}}
+<section class="panel" id="{{.Id}}">
+  <h2>{{.Title}} <span class="count">{{len .Rows}}</span></h2>
+  {{if .Rows}}
+  <div class="list" role="table">
+    <div class="row head" role="row">
+      <span role="columnheader" class="c-ci" title="Pipeline">CI</span>
+      <span role="columnheader">Merge request</span>
+      <span role="columnheader">Labels</span>
+      <span role="columnheader">{{.People}}</span>
+    </div>
+    {{range .Rows}}
+    <div class="row{{if .Draft}} is-draft{{end}}{{if eq .Approval "approved"}} is-approved{{end}}" role="row">
+      <div class="c-ci" role="cell">
+        {{with .Pipeline}}
+        <a class="ci {{ciClass .Status}}" href="{{.URL}}" target="_blank" rel="noopener" title="Pipeline: {{.Text}}">{{pipelineIcon .Status}}</a>
+        {{else}}
+        <span class="ci none" title="No pipeline">{{pipelineIcon "none"}}</span>
+        {{end}}
+      </div>
+      <div class="c-main" role="cell">
+        <a class="title" href="{{.URL}}" target="_blank" rel="noopener">
+          {{- if eq .Approval "approved"}}<span class="tag approved" title="{{.ApprovalTitle}}">{{reviewIcon "approved"}}Approved</span>{{end}}
+          {{- if eq .Approval "partial"}}<span class="tag partial" title="{{.ApprovalTitle}}">{{reviewIcon "approved"}}{{.ApprovalCount}}</span>{{end}}
+          {{- if .Draft}}<span class="tag draft">Draft</span>{{end}}{{.Title}}
+        </a>
+        <div class="meta">
+          <a class="project" href="{{.ProjURL}}" target="_blank" rel="noopener">{{.Project}}</a>
+          <span class="dot">·</span>
+          <a class="ref" href="{{.URL}}" target="_blank" rel="noopener">{{.Ref}}</a>
+          <span class="dot">·</span>
+          <time datetime="{{.Updated.Format "2006-01-02T15:04:05Z07:00"}}" title="Updated {{iso .Updated}}">updated {{ago .Updated}}</time>
+          {{if .MyReview}}<span class="mine {{.MyReview}}">{{reviewIcon .MyReview}}You: {{reviewText .MyReview}}</span>{{end}}
+        </div>
+      </div>
+      <div class="c-labels" role="cell">
+        {{range .Labels}}
+          {{if .Scope}}
+          <span class="label scoped" style="--lc: {{.Color}}; --lt: {{.TextColor}}" title="{{.Title}}"><span class="k">{{.Scope}}</span><span class="v">{{.Value}}</span></span>
+          {{else}}
+          <span class="label" style="--lc: {{.Color}}; --lt: {{.TextColor}}" title="{{.Title}}">{{.Title}}</span>
+          {{end}}
+        {{end}}
+      </div>
+      <div class="c-people" role="cell">
+        {{range .People}}
+        <a class="person" href="{{.URL}}" target="_blank" rel="noopener" title="{{.Name}} (@{{.Username}}){{with reviewText .State}} · {{.}}{{end}}">
+          {{template "avatar" .}}
+          <span class="name">{{.Name}}</span>
+        </a>
+        {{else}}
+        <span class="muted">—</span>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+  {{else}}
+  <p class="empty">{{.Empty}}</p>
+  {{end}}
+</section>
+{{end}}
+
+{{define "avatar"}}
+<span class="avatar" style="--hue: {{.Hue}}">
+  <span class="initials" aria-hidden="true">{{.Initials}}</span>
+  {{if .Avatar}}<img src="{{.Avatar}}" alt="" loading="lazy" referrerpolicy="no-referrer">{{end}}
+  {{with .State}}<span class="badge {{.}}">{{reviewIcon .}}</span>{{end}}
+</span>
+{{end}}
