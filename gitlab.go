@@ -13,7 +13,7 @@ import (
 
 // GitLab is a minimal GraphQL client for a single GitLab instance.
 type GitLab struct {
-	BaseURL string // e.g. https://git.vitibot.fr (no trailing slash)
+	BaseURL string // e.g. https://gitlab.com (no trailing slash)
 	Token   string
 	HTTP    *http.Client
 }

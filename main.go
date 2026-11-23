@@ -22,7 +22,7 @@ var webFS embed.FS
 
 func main() {
 	var (
-		gitlabURL = flag.String("gitlab", envOr("GITLAB_URL", "https://git.vitibot.fr"), "GitLab base URL (env GITLAB_URL)")
+		gitlabURL = flag.String("gitlab", envOr("GITLAB_URL", "https://gitlab.com"), "GitLab base URL (env GITLAB_URL)")
 		listen    = flag.String("listen", envOr("DASHBOARD_LISTEN", "127.0.0.1:8080"), "address to listen on (env DASHBOARD_LISTEN)")
 		refresh   = flag.Duration("refresh", 60*time.Second, "how often the page refreshes itself")
 	)

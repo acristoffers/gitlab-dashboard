@@ -42,7 +42,7 @@ stays on screen under an error banner.
 
 | Flag        | Env                | Default                  |
 |-------------|--------------------|--------------------------|
-| `-gitlab`   | `GITLAB_URL`       | `https://git.vitibot.fr` |
+| `-gitlab`   | `GITLAB_URL`       | `https://gitlab.com` |
 | `-listen`   | `DASHBOARD_LISTEN` | `127.0.0.1:8080`         |
 | `-refresh`  |                    | `60s`                    |
 
