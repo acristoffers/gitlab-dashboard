@@ -247,6 +247,30 @@ there are no third-party modules. Adding a dependency means adding a real
 `gitignore.nix`, and like any flake, only files tracked by git are visible to
 Nix.
 
+## Demo mode and screenshots
+
+`demo.go` is compiled only with the `demo` build tag. It sets `demoData`,
+which replaces the GitLab fetch with made-up merge requests and skips looking
+up a token:
+
+```sh
+go run -tags demo . -gitlab https://gitlab.example.com
+```
+
+The data is written as GitLab GraphQL JSON and decoded into the real response
+types, so it goes through the same view-model code as live data. It's designed
+to show every feature: each pipeline status, approved and partly approved MRs,
+every review state, a three-deep stack of MRs with blockers, a blocker in
+another project and a non-default target branch. Normal builds don't include
+it, so nobody can accidentally run a release binary with fake data.
+
+The README screenshots in `doc/screenshots/` come from this mode. They were
+rendered with headless Chrome at 1280px wide and a device scale factor of 2,
+then trimmed. For the dark version, the stylesheet's
+`prefers-color-scheme: dark` query was forced on in a saved copy of the page,
+because headless Chrome doesn't reliably emulate the colour scheme from the
+command line. Regenerate them whenever the UI changes visibly.
+
 ## Testing
 
 `view_test.go` covers the rules above: label order and scoped-label splitting,

@@ -40,14 +40,19 @@ func main() {
 		log.Fatalf("invalid GitLab URL %q", *gitlabURL)
 	}
 
-	token, err := findToken(u.Host)
-	if err != nil {
-		log.Fatal(err)
+	var fetch func(context.Context) (*Dashboard, error)
+	if demoData != nil {
+		log.Print("demo mode: serving made-up merge requests, GitLab is not contacted")
+		fetch = func(context.Context) (*Dashboard, error) { return demoData(base), nil }
+	} else {
+		token, err := findToken(u.Host)
+		if err != nil {
+			log.Fatal(err)
+		}
+		gl := &GitLab{BaseURL: base, Token: token, HTTP: &http.Client{Timeout: 30 * time.Second}}
+		fetch = gl.FetchDashboard
 	}
-
-	gl := &GitLab{BaseURL: base, Token: token, HTTP: &http.Client{Timeout: 30 * time.Second}}
-	ttl := max(*refresh/2, 15*time.Second)
-	c := &cache{gl: gl, ttl: ttl}
+	c := &cache{fetch: fetch, ttl: max(*refresh/2, 15*time.Second)}
 
 	tmpl := template.Must(template.New("").Funcs(template.FuncMap{
 		"ago":          timeAgo,
@@ -94,11 +99,15 @@ func main() {
 	log.Fatal(http.ListenAndServe(*listen, mux))
 }
 
+// demoData is set only in builds with the "demo" tag (see demo.go). It replaces
+// GitLab with made-up data, for screenshots.
+var demoData func(base string) *Dashboard
+
 // cache keeps the last successful fetch so the page stays useful if GitLab
 // hiccups, and so reloads don't hammer the API.
 type cache struct {
-	gl  *GitLab
-	ttl time.Duration
+	fetch func(context.Context) (*Dashboard, error)
+	ttl   time.Duration
 
 	mu        sync.Mutex
 	data      *Dashboard
@@ -119,7 +128,7 @@ func (c *cache) get(ctx context.Context, force bool) (*Dashboard, time.Time, err
 
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
 	defer cancel()
-	d, err := c.gl.FetchDashboard(ctx)
+	d, err := c.fetch(ctx)
 	if err != nil {
 		log.Printf("fetch: %v", err)
 		c.lastErr, c.errAt = err, time.Now()

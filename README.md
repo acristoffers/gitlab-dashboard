@@ -2,6 +2,11 @@
 
 **The merge requests that matter, on one page.**
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="doc/screenshots/dashboard-dark.png">
+  <img alt="The dashboard showing two lists of merge requests with pipeline status, approvals, labels, branches, blockers and reviewers" src="doc/screenshots/dashboard-light.png">
+</picture>
+
 GitLab's built-in dashboards try to show everything. This one shows two lists,
 and gives each row exactly what you need to decide what to do next:
 
