@@ -1,72 +1,104 @@
 # gitlab-dashboard
 
-A small, fast GitLab dashboard with just two lists:
+**The merge requests that matter, on one page.**
 
-1. **My merge requests**: open MRs you authored, with their reviewers.
-2. **Review requested**: open MRs where you are a reviewer, with their assignees.
+GitLab's built-in dashboards try to show everything. This one shows two lists,
+and gives each row exactly what you need to decide what to do next:
 
-Each row shows the pipeline status, title, project name, labels (GitLab-style
-coloured pills, scoped labels split in two, sorted alphabetically so they never
-shuffle) and the people involved, with avatars and their review state. You also
-see your own review state on MRs you're reviewing. Every link goes to GitLab.
+1. **My merge requests**: everything you have open, and who's reviewing it.
+2. **Review requested**: everything waiting on you, and whose it is.
 
-Approved MRs get a green **Approved** pill and a green left edge. Hover over
-the pill to see who approved. If a project needs more approvals than it has, the
-pill shows a count like `1/2` instead.
+## What you see at a glance
 
-After the update time comes the MR's branch. When it merges into something
-other than the project's default branch, for example a stacked MR on top of a
-feature branch, the target follows as `source → target`. Both link to the
-branches on GitLab.
+- **Pipeline status**: passed, failed, running and the rest, as a coloured icon
+  that opens the pipeline.
+- **Approval**: approved MRs stand out with a green **Approved** pill and a green
+  edge. Hover to see who approved. MRs that need more approvals show progress
+  like `1/2`.
+- **Reviewers and assignees**: names and avatars, with a small badge showing who
+  approved, who requested changes and who already reviewed.
+- **Your own review**: on MRs you're reviewing, a reminder of where you left
+  off, such as "You: Approved" or "You: Requested changes".
+- **Labels**: GitLab's coloured pills, including split scoped labels like
+  `Status | Ready`. They always appear in the same order, so you can scan them
+  quickly.
+- **Branches**: the MR's branch and, when it doesn't merge into the default
+  branch, where it does: `feature/x → feature/base`. Handy for stacked MRs.
+- **Blockers**: a red `⊘ !93` when an MR is waiting on another one to be merged.
+- **Project and age**: the short project name, the MR number and when it was
+  last updated.
 
-If the MR depends on other MRs that aren't merged yet, a red ⊘ follows with
-links to them, e.g. `⊘ !801` or `⊘ AutonomyInterfaces!93` for an MR in another
-project. Blockers you don't have access to are counted as `+N`.
+Everything links straight to GitLab. The page refreshes itself every minute
+while it's visible. Press `r` or click **Refresh** to update now. It follows
+your system's light or dark theme and works on a phone too.
 
-The page refreshes itself every minute while visible. Press `r` or click
-**Refresh** to force a fresh fetch.
+## Getting started
 
-## Running
+With Nix:
 
 ```sh
-go build -o gitlab-dashboard .
-./gitlab-dashboard            # http://127.0.0.1:8080
+nix run github:acristoffers/gitlab-dashboard
 ```
 
-Each list is one GraphQL request to GitLab, and the two run in parallel.
-Combining them would exceed GitLab's query complexity limit. Results are cached for half
-the refresh interval (minimum 15s). If GitLab is unreachable, the last good data
-stays on screen under an error banner.
+Or with Go:
 
-### Configuration
+```sh
+git clone https://github.com/acristoffers/gitlab-dashboard
+cd gitlab-dashboard
+go build -o gitlab-dashboard .
+./gitlab-dashboard
+```
 
-| Flag        | Env                | Default                  |
-|-------------|--------------------|--------------------------|
-| `-gitlab`   | `GITLAB_URL`       | `https://gitlab.com` |
-| `-listen`   | `DASHBOARD_LISTEN` | `127.0.0.1:8080`         |
-| `-refresh`  |                    | `60s`                    |
+Then open <http://127.0.0.1:8080>.
 
-A flag on the command line beats the environment variable, which beats the
-default. `--help` always shows the built-in defaults.
+### Signing in to GitLab
 
-**Token:** taken from `GITLAB_TOKEN` (or `GITLAB_ACCESS_TOKEN` / `GLAB_TOKEN`).
-Otherwise it falls back to `glab config get token --host <gitlab host>`, so if
-`glab` is logged in, nothing else is needed. The token needs the `read_api` scope.
+If you use [`glab`](https://gitlab.com/gitlab-org/cli) and are logged in, there's
+nothing to do: the dashboard uses its login.
 
-The server talks to GitLab with your token. It listens on localhost by default,
-so don't expose it beyond that.
+Otherwise, create a personal access token with the `read_api` scope and put it
+in `GITLAB_TOKEN`:
 
-### Avatars
+```sh
+export GITLAB_TOKEN=glpat-…
+```
 
-Avatars uploaded to GitLab (`/uploads/...`) are only served to a logged-in
-browser session. API tokens don't work for them. If your browser can't load one,
-the dashboard shows coloured initials instead. Gravatar avatars always load.
+The dashboard only reads from GitLab. It never changes anything.
 
-Being logged in to GitLab isn't always enough. Firefox's Total Cookie Protection
-keeps GitLab's cookies separate when the page you're on is the dashboard, so the
-avatar requests go out logged out and fail. Fix it by turning off Enhanced
-Tracking Protection for the dashboard's address: click the shield icon in the
-address bar while on the dashboard. This affects only that one site.
+### Using your own GitLab server
+
+It talks to gitlab.com by default. To use a self-hosted GitLab:
+
+```sh
+./gitlab-dashboard -gitlab https://git.example.com
+# or
+export GITLAB_URL=https://git.example.com
+```
+
+## Configuration
+
+| Option     | Environment variable | Default              | What it does                     |
+|------------|----------------------|----------------------|----------------------------------|
+| `-gitlab`  | `GITLAB_URL`         | `https://gitlab.com` | Which GitLab server to use       |
+| `-listen`  | `DASHBOARD_LISTEN`   | `127.0.0.1:8080`     | Address the dashboard listens on |
+| `-refresh` |                      | `60s`                | How often the page updates       |
+
+Options given on the command line take priority over environment variables.
+
+The dashboard uses your GitLab token, so by default only your own computer can
+open it. Don't make it reachable from other machines unless you're comfortable
+with everyone who can reach it seeing your merge requests.
+
+## Troubleshooting
+
+**Some avatars show initials instead of a picture.** GitLab only shows uploaded
+profile pictures to a browser that is logged in to GitLab. Log in to GitLab in
+the same browser.
+
+In **Firefox**, you also need to allow it for the dashboard. Click the shield
+icon in the address bar while on the dashboard and turn off Enhanced Tracking
+Protection for that site. Firefox otherwise keeps your GitLab login separate
+from other sites, so the pictures can't load. This affects only the dashboard.
 
 ## License
 
@@ -76,3 +108,5 @@ This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version. See [LICENSE](LICENSE).
+
+How it works under the hood is described in [doc/design.md](doc/design.md).
