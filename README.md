@@ -46,6 +46,9 @@ stays on screen under an error banner.
 | `-listen`   | `DASHBOARD_LISTEN` | `127.0.0.1:8080`         |
 | `-refresh`  |                    | `60s`                    |
 
+A flag on the command line beats the environment variable, which beats the
+default. `--help` always shows the built-in defaults.
+
 **Token:** taken from `GITLAB_TOKEN` (or `GITLAB_ACCESS_TOKEN` / `GLAB_TOKEN`).
 Otherwise it falls back to `glab config get token --host <gitlab host>`, so if
 `glab` is logged in, nothing else is needed. The token needs the `read_api` scope.

@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"flag"
+	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
@@ -22,11 +23,16 @@ var webFS embed.FS
 
 func main() {
 	var (
-		gitlabURL = flag.String("gitlab", envOr("GITLAB_URL", "https://gitlab.com"), "GitLab base URL (env GITLAB_URL)")
-		listen    = flag.String("listen", envOr("DASHBOARD_LISTEN", "127.0.0.1:8080"), "address to listen on (env DASHBOARD_LISTEN)")
+		gitlabURL = flag.String("gitlab", "https://gitlab.com", "GitLab base URL (env $GITLAB_URL)")
+		listen    = flag.String("listen", "127.0.0.1:8080", "address to listen on (env $DASHBOARD_LISTEN)")
 		refresh   = flag.Duration("refresh", 60*time.Second, "how often the page refreshes itself")
 	)
 	flag.Parse()
+	// Precedence: command-line flag > environment variable > built-in default.
+	// Applied after parsing so --help always shows the built-in defaults.
+	if err := applyEnv(map[string]string{"gitlab": "GITLAB_URL", "listen": "DASHBOARD_LISTEN"}); err != nil {
+		log.Fatal(err)
+	}
 
 	base := strings.TrimRight(*gitlabURL, "/")
 	u, err := url.Parse(base)
@@ -139,9 +145,17 @@ func findToken(host string) (string, error) {
 	return "", errors.New("no GitLab token found: set GITLAB_TOKEN (scope read_api) or log in with `glab auth login --hostname " + host + "`")
 }
 
-func envOr(k, def string) string {
-	if v := os.Getenv(k); v != "" {
-		return v
+// applyEnv sets each flag from its environment variable unless the flag was
+// given on the command line.
+func applyEnv(envByFlag map[string]string) error {
+	given := map[string]bool{}
+	flag.Visit(func(f *flag.Flag) { given[f.Name] = true })
+	for name, env := range envByFlag {
+		if v := os.Getenv(env); v != "" && !given[name] {
+			if err := flag.Set(name, v); err != nil {
+				return fmt.Errorf("invalid $%s: %w", env, err)
+			}
+		}
 	}
-	return def
+	return nil
 }
